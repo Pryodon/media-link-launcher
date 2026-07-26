@@ -1,5 +1,9 @@
 # Media Link Launcher
 
+(NOTE: These files and this readme are for the Linux version. The README.md 
+including the installation instructions for the Windows version is in the 
+Windows .zip release file.)
+
 ## Open web media links in VLC media player
 
 Media Link Launcher 0.2.0 is an independent third-party Tampermonkey
