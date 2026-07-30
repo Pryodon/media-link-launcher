@@ -14,7 +14,11 @@ from pathlib import Path
 VERSION = "0.2.0"
 TOP_LEVEL = "media-link-launcher-linux"
 PACKAGE_DIR = Path(__file__).resolve().parent
-OUTPUT = PACKAGE_DIR.parent / f"{TOP_LEVEL}-{VERSION}.zip"
+REPOSITORY_ROOT = PACKAGE_DIR.parent
+REPOSITORY_LAYOUT = PACKAGE_DIR.name == "linux" and (
+    REPOSITORY_ROOT / "userscript" / "media-link-launcher.user.js"
+).is_file()
+OUTPUT = REPOSITORY_ROOT / f"{TOP_LEVEL}-{VERSION}.zip"
 
 RELEASE_FILES = (
     "README.md",
@@ -52,10 +56,25 @@ def archive_info(name: str, mode: int, *, directory: bool = False) -> zipfile.Zi
     return info
 
 
+def source_path(relative_name: str) -> Path:
+    if not REPOSITORY_LAYOUT:
+        return PACKAGE_DIR / relative_name
+    if relative_name in {"LICENSE.md", "DISCLAIMER.md"}:
+        return REPOSITORY_ROOT / relative_name
+    if relative_name == "media-link-launcher.user.js":
+        return REPOSITORY_ROOT / "userscript" / relative_name
+    if relative_name == "tests/test_userscript.js":
+        return REPOSITORY_ROOT / "userscript" / "tests" / "test_userscript.js"
+    return PACKAGE_DIR / relative_name
+
+
 def validated_source(relative_name: str) -> Path:
-    source = PACKAGE_DIR / relative_name
+    source = source_path(relative_name)
     if source.is_symlink() or not source.is_file():
-        raise SystemExit(f"Missing, symbolic, or non-regular release file: {relative_name}")
+        raise SystemExit(
+            f"Missing, symbolic, or non-regular release file: "
+            f"{relative_name} ({source})"
+        )
     return source
 
 
