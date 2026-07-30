@@ -1,0 +1,7 @@
+/media-link-launcher-linux-*.zip
+/media-link-launcher-windows-*.zip
+/.media-link-launcher-linux-*.zip.*.tmp
+/media-link-launcher-windows-*.zip.new-*
+__pycache__/
+*.py[cod]
+.DS_Store

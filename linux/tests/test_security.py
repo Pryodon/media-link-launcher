@@ -14,6 +14,10 @@ from unittest import mock
 PACKAGE_DIR = pathlib.Path(__file__).resolve().parents[1]
 HANDLER_PATH = PACKAGE_DIR / "media-link-launcher.py"
 USERSCRIPT_PATH = PACKAGE_DIR / "media-link-launcher.user.js"
+if not USERSCRIPT_PATH.is_file():
+    USERSCRIPT_PATH = (
+        PACKAGE_DIR.parent / "userscript" / "media-link-launcher.user.js"
+    )
 INSTALLER_PATH = PACKAGE_DIR / "install-media-link-launcher.sh"
 
 SPEC = importlib.util.spec_from_file_location(
