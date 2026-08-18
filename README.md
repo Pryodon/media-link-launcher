@@ -1,6 +1,7 @@
 # Media Link Launcher
 
-Open recognized web media links in VLC media player on Linux or Windows.
+Stream recognized web media links directly in VLC media player on Linux or Windows 
+without downloading the entire media file first.
 
 Media Link Launcher is an independent third-party project with two components:
 
