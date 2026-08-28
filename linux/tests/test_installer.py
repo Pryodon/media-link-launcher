@@ -102,6 +102,22 @@ class InstallerIntegrationTests(unittest.TestCase):
         if result.returncode != 0:
             self.fail(f"Unable to prepare test MIME association:\n{result.stdout}")
 
+    def create_release_layout(self) -> pathlib.Path:
+        package = self.root / "media-link-launcher-linux"
+        package.mkdir()
+        for name, source in (
+            ("install-media-link-launcher.sh", INSTALLER),
+            ("media-link-launcher.py", PACKAGE_DIR / "media-link-launcher.py"),
+            (
+                "media-link-launcher.desktop.in",
+                PACKAGE_DIR / "media-link-launcher.desktop.in",
+            ),
+            ("LICENSE.md", PROJECT_ROOT / "LICENSE.md"),
+            ("DISCLAIMER.md", PROJECT_ROOT / "DISCLAIMER.md"),
+        ):
+            shutil.copy2(source, package / name)
+        return package / "install-media-link-launcher.sh"
+
     def test_install_is_idempotent_private_and_uninstalls_safely(self) -> None:
         first = self.run_script()
         self.assertIn("Installed Media Link Launcher 0.2.0", first.stdout)
@@ -159,6 +175,26 @@ class InstallerIntegrationTests(unittest.TestCase):
 
         repeated = self.run_script(UNINSTALLER)
         self.assertIn("already absent", repeated.stdout)
+
+    def test_install_uses_legal_files_beside_release_installer(self) -> None:
+        installer = self.create_release_layout()
+
+        result = self.run_script(installer)
+
+        self.assertIn("Installed Media Link Launcher 0.2.0", result.stdout)
+        self.assertTrue(self.handler.is_file())
+        self.assertTrue(self.desktop.is_file())
+
+    def test_missing_release_legal_file_refuses_before_changes(self) -> None:
+        installer = self.create_release_layout()
+        (installer.parent / "DISCLAIMER.md").unlink()
+
+        result = self.run_script(installer, check=False)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Missing or unsafe disclaimer file", result.stdout)
+        self.assertFalse(self.handler.exists())
+        self.assertFalse(self.config_dir.exists())
 
     def test_unrelated_new_destination_causes_refusal_before_changes(self) -> None:
         self.handler.parent.mkdir(parents=True, mode=0o755)

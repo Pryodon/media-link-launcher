@@ -167,10 +167,26 @@ function Invoke-Installation {
 
     $sourceDirectory = Split-Path -Parent $PSCommandPath
     $handlerSource = Join-Path $sourceDirectory 'media-link-launcher.ps1'
+    $licenseSource = Join-Path $sourceDirectory 'LICENSE.md'
+    $disclaimerSource = Join-Path $sourceDirectory 'DISCLAIMER.md'
+    $repositoryRoot = Split-Path -Parent $sourceDirectory
+    $repositoryUserscript = Join-Path (Join-Path $repositoryRoot 'userscript') 'media-link-launcher.user.js'
+    $repositoryLayout = (
+        (Split-Path -Leaf $sourceDirectory) -eq 'windows' -and
+        (Test-Path -LiteralPath $repositoryUserscript -PathType Leaf)
+    )
+    if ($repositoryLayout) {
+        if (-not (Test-Path -LiteralPath $licenseSource -PathType Leaf)) {
+            $licenseSource = Join-Path $repositoryRoot 'LICENSE.md'
+        }
+        if (-not (Test-Path -LiteralPath $disclaimerSource -PathType Leaf)) {
+            $disclaimerSource = Join-Path $repositoryRoot 'DISCLAIMER.md'
+        }
+    }
     foreach ($required in @(
         $handlerSource,
-        (Join-Path $sourceDirectory 'LICENSE.md'),
-        (Join-Path $sourceDirectory 'DISCLAIMER.md')
+        $licenseSource,
+        $disclaimerSource
     )) {
         if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
             throw "A required package file is missing: $required"
@@ -204,8 +220,8 @@ function Invoke-Installation {
 
     $installedHandler = Join-Path $applicationDirectory 'media-link-launcher.ps1'
     Copy-FileAtomically -Source $handlerSource -Destination $installedHandler
-    Copy-FileAtomically -Source (Join-Path $sourceDirectory 'LICENSE.md') -Destination (Join-Path $applicationDirectory 'LICENSE.md')
-    Copy-FileAtomically -Source (Join-Path $sourceDirectory 'DISCLAIMER.md') -Destination (Join-Path $applicationDirectory 'DISCLAIMER.md')
+    Copy-FileAtomically -Source $licenseSource -Destination (Join-Path $applicationDirectory 'LICENSE.md')
+    Copy-FileAtomically -Source $disclaimerSource -Destination (Join-Path $applicationDirectory 'DISCLAIMER.md')
     Write-Utf8WithoutBom -Path (Join-Path $applicationDirectory 'vlc-path.txt') -Value ($resolvedVlcPath + [Environment]::NewLine)
     Write-Utf8WithoutBom -Path (Join-Path $applicationDirectory 'version.txt') -Value ($script:Version + [Environment]::NewLine)
 
