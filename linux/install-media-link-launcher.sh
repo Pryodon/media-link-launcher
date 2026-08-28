@@ -48,6 +48,19 @@ validate_absolute_directory_setting 'HOME' "${HOME:-}"
 readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 readonly handler_template="${script_dir}/media-link-launcher.py"
 readonly desktop_template="${script_dir}/media-link-launcher.desktop.in"
+readonly repository_root="$(cd -- "${script_dir}/.." && pwd -P)"
+readonly repository_userscript="${repository_root}/userscript/media-link-launcher.user.js"
+license_source="${script_dir}/LICENSE.md"
+disclaimer_source="${script_dir}/DISCLAIMER.md"
+if [[ "${script_dir##*/}" == 'linux' && -f "$repository_userscript" && ! -L "$repository_userscript" ]]; then
+    if [[ ! -f "$license_source" && ! -L "$license_source" ]]; then
+        license_source="${repository_root}/LICENSE.md"
+    fi
+    if [[ ! -f "$disclaimer_source" && ! -L "$disclaimer_source" ]]; then
+        disclaimer_source="${repository_root}/DISCLAIMER.md"
+    fi
+fi
+readonly license_source disclaimer_source
 
 readonly bin_dir="${HOME}/.local/bin"
 readonly data_root="${XDG_DATA_HOME:-${HOME}/.local/share}"
@@ -637,6 +650,12 @@ install_handler() {
     fi
     if [[ ! -f "$desktop_template" || -L "$desktop_template" ]]; then
         fail "Missing or unsafe desktop template: ${desktop_template}"
+    fi
+    if [[ ! -f "$license_source" || -L "$license_source" ]]; then
+        fail "Missing or unsafe license file: ${license_source}"
+    fi
+    if [[ ! -f "$disclaimer_source" || -L "$disclaimer_source" ]]; then
+        fail "Missing or unsafe disclaimer file: ${disclaimer_source}"
     fi
     preflight_new_destinations
     vlc_path="$(resolve_program vlc)"
