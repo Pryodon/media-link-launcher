@@ -8,7 +8,7 @@ Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
 $script:ProtocolScheme = 'media-link-launcher'
-$script:Version = '0.2.0'
+$script:Version = '0.2.1'
 
 function Write-Utf8WithoutBom {
     param(

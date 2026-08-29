@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 PROJECT_ID = "media-link-launcher"
 PROTOCOL_SCHEME = "media-link-launcher"
 PROTOCOL_ACTION = "open"

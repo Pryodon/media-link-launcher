@@ -11,7 +11,7 @@ import zipfile
 from pathlib import Path
 
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 TOP_LEVEL = "media-link-launcher-linux"
 PACKAGE_DIR = Path(__file__).resolve().parent
 REPOSITORY_ROOT = PACKAGE_DIR.parent
@@ -28,6 +28,7 @@ RELEASE_FILES = (
     "install-media-link-launcher.sh",
     "uninstall-media-link-launcher.sh",
     "media-link-launcher.user.js",
+    "USERSCRIPT-SHA256.txt",
     "media-link-launcher.py",
     "media-link-launcher.desktop.in",
     "build-release.py",
@@ -61,7 +62,7 @@ def source_path(relative_name: str) -> Path:
         return PACKAGE_DIR / relative_name
     if relative_name in {"LICENSE.md", "DISCLAIMER.md"}:
         return REPOSITORY_ROOT / relative_name
-    if relative_name == "media-link-launcher.user.js":
+    if relative_name in {"media-link-launcher.user.js", "USERSCRIPT-SHA256.txt"}:
         return REPOSITORY_ROOT / "userscript" / relative_name
     if relative_name == "tests/test_userscript.js":
         return REPOSITORY_ROOT / "userscript" / "tests" / "test_userscript.js"
@@ -78,7 +79,23 @@ def validated_source(relative_name: str) -> Path:
     return source
 
 
+def validate_userscript_checksum() -> None:
+    userscript = validated_source("media-link-launcher.user.js")
+    checksum_file = validated_source("USERSCRIPT-SHA256.txt")
+    expected = (
+        f"{hashlib.sha256(userscript.read_bytes()).hexdigest()}  "
+        "media-link-launcher.user.js\n"
+    )
+    try:
+        actual = checksum_file.read_text(encoding="ascii")
+    except UnicodeDecodeError as error:
+        raise SystemExit("The shared userscript checksum is not ASCII.") from error
+    if actual != expected:
+        raise SystemExit("The shared userscript checksum is stale or malformed.")
+
+
 def build() -> tuple[Path, str]:
+    validate_userscript_checksum()
     sources = [(name, validated_source(name)) for name in RELEASE_FILES]
     temporary_fd, temporary_name = tempfile.mkstemp(
         prefix=f".{OUTPUT.name}.",

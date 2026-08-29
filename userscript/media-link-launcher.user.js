@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Media Link Launcher
 // @namespace    media-link-launcher.local
-// @version      0.2.0
+// @version      0.2.1
 // @description  Adds a user-activated VLC control beside heuristically recognized media links without changing the original link.
 // @match        *://*/*
 // @run-at       document-idle
@@ -17,6 +17,8 @@
      * media URL remains in this isolated userscript closure and is encoded into
      * the custom-protocol request only after a trusted left click.
      */
+
+    const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 
     const MEDIA_EXTENSIONS = new Set([
         // Video
@@ -57,8 +59,18 @@
 
     const generatedControls = new WeakMap();
 
+    function createHtmlElement(tagName) {
+        return document.createElementNS(HTML_NAMESPACE, tagName);
+    }
+
+    function isAnchorElement(node) {
+        return node instanceof Element &&
+            node.localName === 'a' &&
+            (node.namespaceURI === null || node.namespaceURI === HTML_NAMESPACE);
+    }
+
     function installStyles() {
-        const style = document.createElement('style');
+        const style = createHtmlElement('style');
         style.textContent = `
             .media-link-launcher-wrapper {
                 white-space: nowrap !important;
@@ -170,7 +182,7 @@
     }
 
     function processAnchor(anchor) {
-        if (!(anchor instanceof HTMLAnchorElement)) {
+        if (!isAnchorElement(anchor)) {
             return;
         }
 
@@ -193,7 +205,7 @@
             previous.wrapper.remove();
         }
 
-        const wrapper = document.createElement('span');
+        const wrapper = createHtmlElement('span');
         wrapper.className = 'media-link-launcher-wrapper';
         wrapper.style.setProperty(
             'color',
@@ -202,7 +214,7 @@
         );
 
         const separator = document.createTextNode(' ');
-        const control = document.createElement('button');
+        const control = createHtmlElement('button');
         control.type = 'button';
         control.className = 'media-link-launcher-control';
         control.textContent = 'VLC';
@@ -224,7 +236,7 @@
     }
 
     function scan(root) {
-        if (root instanceof HTMLAnchorElement) {
+        if (isAnchorElement(root)) {
             processAnchor(root);
         }
 

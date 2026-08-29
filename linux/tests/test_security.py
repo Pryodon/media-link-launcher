@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import os
 import pathlib
@@ -17,6 +18,11 @@ USERSCRIPT_PATH = PACKAGE_DIR / "media-link-launcher.user.js"
 if not USERSCRIPT_PATH.is_file():
     USERSCRIPT_PATH = (
         PACKAGE_DIR.parent / "userscript" / "media-link-launcher.user.js"
+    )
+USERSCRIPT_CHECKSUM_PATH = PACKAGE_DIR / "USERSCRIPT-SHA256.txt"
+if not USERSCRIPT_CHECKSUM_PATH.is_file():
+    USERSCRIPT_CHECKSUM_PATH = (
+        PACKAGE_DIR.parent / "userscript" / "USERSCRIPT-SHA256.txt"
     )
 INSTALLER_PATH = PACKAGE_DIR / "install-media-link-launcher.sh"
 
@@ -319,7 +325,7 @@ class UserscriptStaticBoundaryTests(unittest.TestCase):
 
     def test_metadata_is_neutral_versioned_unprivileged_and_sandboxed(self) -> None:
         self.assertIn("// @name         Media Link Launcher", self.source)
-        self.assertIn("// @version      0.2.0", self.source)
+        self.assertIn("// @version      0.2.1", self.source)
         self.assertIn("// @match        *://*/*", self.source)
         self.assertIn("// @sandbox      DOM", self.source)
         self.assertIn("// @grant        none", self.source)
@@ -337,6 +343,14 @@ class UserscriptStaticBoundaryTests(unittest.TestCase):
     def test_userscript_has_no_network_request_api(self) -> None:
         for value in ("fetch(", "XMLHttpRequest", "GM_xmlhttpRequest", "WebSocket("):
             self.assertNotIn(value, self.source)
+
+    def test_userscript_checksum_matches_canonical_source(self) -> None:
+        checksum_line = USERSCRIPT_CHECKSUM_PATH.read_text(encoding="ascii")
+        expected = (
+            f"{hashlib.sha256(USERSCRIPT_PATH.read_bytes()).hexdigest()}  "
+            "media-link-launcher.user.js\n"
+        )
+        self.assertEqual(checksum_line, expected)
 
     def test_active_sources_do_not_contain_old_uri_literal(self) -> None:
         for path in (HANDLER_PATH, INSTALLER_PATH, USERSCRIPT_PATH):

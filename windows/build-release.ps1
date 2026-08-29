@@ -6,11 +6,12 @@ param(
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
-$version = '0.2.0'
+$version = '0.2.1'
 $topLevel = 'media-link-launcher-windows'
 $sourceDirectory = Split-Path -Parent $PSCommandPath
 $repositoryRoot = Split-Path -Parent $sourceDirectory
-$repositoryUserscript = Join-Path (Join-Path $repositoryRoot 'userscript') 'media-link-launcher.user.js'
+$repositoryUserscriptDirectory = Join-Path $repositoryRoot 'userscript'
+$repositoryUserscript = Join-Path $repositoryUserscriptDirectory 'media-link-launcher.user.js'
 $repositoryLayout = ((Split-Path -Leaf $sourceDirectory) -eq 'windows') -and (Test-Path -LiteralPath $repositoryUserscript -PathType Leaf)
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = Join-Path $repositoryRoot ("media-link-launcher-windows-{0}.zip" -f $version)
@@ -46,13 +47,21 @@ function Get-ReleaseSourcePath {
     if ($RelativePath -eq 'media-link-launcher.user.js') {
         return $repositoryUserscript
     }
+    if ($RelativePath -eq 'USERSCRIPT-SHA256.txt') {
+        return Join-Path $repositoryUserscriptDirectory $RelativePath
+    }
     return Join-Path $sourceDirectory $RelativePath
 }
 
-$expectedUserscriptHash = '5F250F81E4AD6F72D1241B6E21565E5595CBB9A6186F8F6F3914E9F149FAF0C6'
+$expectedUserscriptHashPath = Get-ReleaseSourcePath 'USERSCRIPT-SHA256.txt'
+$expectedUserscriptHashLine = ([System.IO.File]::ReadAllText($expectedUserscriptHashPath)).Trim()
+if ($expectedUserscriptHashLine -notmatch '^([0-9A-Fa-f]{64})  media-link-launcher\.user\.js$') {
+    throw 'The shared userscript checksum is malformed.'
+}
+$expectedUserscriptHash = $Matches[1].ToUpperInvariant()
 $actualUserscriptHash = (Get-FileHash -Algorithm SHA256 -LiteralPath (Get-ReleaseSourcePath 'media-link-launcher.user.js')).Hash
 if ($actualUserscriptHash -ne $expectedUserscriptHash) {
-    throw 'The shared userscript hash changed; the release was not built.'
+    throw 'The shared userscript checksum is stale; the release was not built.'
 }
 
 foreach ($relativePath in $releaseFiles) {

@@ -5,7 +5,7 @@ PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin'
 export PATH
 umask 077
 
-readonly VERSION='0.2.0'
+readonly VERSION='0.2.1'
 readonly PROJECT_ID='media-link-launcher'
 readonly DESKTOP_ID='media-link-launcher.desktop'
 readonly MIME_TYPE='x-scheme-handler/media-link-launcher'

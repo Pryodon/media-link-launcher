@@ -8,4 +8,4 @@ NoDisplay=true
 MimeType=x-scheme-handler/media-link-launcher;
 Categories=AudioVideo;Utility;
 X-Media-Link-Launcher-ID=media-link-launcher
-X-Media-Link-Launcher-Version=0.2.0
+X-Media-Link-Launcher-Version=0.2.1

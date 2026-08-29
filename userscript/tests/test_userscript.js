@@ -7,6 +7,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const SCRIPT_PATH = path.resolve(__dirname, '..', 'media-link-launcher.user.js');
+const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 
 class FakeNode {
     constructor() {
@@ -55,13 +56,14 @@ class FakeStyle {
 }
 
 class FakeElement extends FakeNode {
-    constructor(tagName) {
+    constructor(tagName, namespaceURI = null) {
         super();
         this.tagName = tagName.toUpperCase();
+        this.localName = tagName.toLowerCase();
+        this.namespaceURI = namespaceURI;
         this.attributes = new Map();
         this.childNodes = [];
         this.className = '';
-        this.style = new FakeStyle();
         this.listeners = new Map();
         this._textContent = '';
     }
@@ -118,7 +120,8 @@ class FakeElement extends FakeNode {
                 return;
             }
             if (selector === 'a[href]' &&
-                node instanceof FakeHTMLAnchorElement &&
+                node.localName === 'a' &&
+                (node.namespaceURI === null || node.namespaceURI === HTML_NAMESPACE) &&
                 node.hasAttribute('href')) {
                 result.push(node);
             }
@@ -133,7 +136,20 @@ class FakeElement extends FakeNode {
     }
 }
 
-class FakeHTMLAnchorElement extends FakeElement {
+class FakeHTMLElement extends FakeElement {
+    constructor(tagName) {
+        super(tagName, HTML_NAMESPACE);
+        this.style = new FakeStyle();
+    }
+}
+
+class FakeHTMLAnchorElement extends FakeHTMLElement {
+    constructor() {
+        super('a');
+    }
+}
+
+class FakeXMLHTMLAnchorElement extends FakeHTMLElement {
     constructor() {
         super('a');
     }
@@ -146,21 +162,34 @@ class FakeDocumentFragment extends FakeElement {
 }
 
 class FakeDocument extends FakeElement {
-    constructor() {
+    constructor({xml = false} = {}) {
         super('#document');
+        this.xml = xml;
         this.baseURI = 'https://example.test/base/page.html';
-        this.documentElement = new FakeElement('html');
-        this.head = new FakeElement('head');
-        this.body = new FakeElement('body');
+        this.documentElement = this.createElementNS(HTML_NAMESPACE, 'html');
+        this.head = this.createElementNS(HTML_NAMESPACE, 'head');
+        this.body = this.createElementNS(HTML_NAMESPACE, 'body');
         this.append(this.documentElement);
         this.documentElement.append(this.head, this.body);
     }
 
     createElement(tagName) {
-        if (tagName.toLowerCase() === 'a') {
-            return new FakeHTMLAnchorElement();
+        if (this.xml) {
+            return new FakeElement(tagName);
         }
-        return new FakeElement(tagName);
+        return this.createElementNS(HTML_NAMESPACE, tagName);
+    }
+
+    createElementNS(namespaceURI, tagName) {
+        if (namespaceURI !== HTML_NAMESPACE) {
+            return new FakeElement(tagName, namespaceURI);
+        }
+        if (tagName.toLowerCase() === 'a') {
+            return this.xml
+                ? new FakeXMLHTMLAnchorElement()
+                : new FakeHTMLAnchorElement();
+        }
+        return new FakeHTMLElement(tagName);
     }
 
     createTextNode(text) {
@@ -196,7 +225,7 @@ function elementsWithClass(root, className) {
 }
 
 function anchor(document, href, text, attributes = {}) {
-    const element = document.createElement('a');
+    const element = document.createElementNS(HTML_NAMESPACE, 'a');
     element.setAttribute('href', href);
     element.textContent = text;
     for (const [name, value] of Object.entries(attributes)) {
@@ -268,6 +297,38 @@ test('initial scan preserves original links and avoids title-only false positive
     assert.ok(navigations[0].startsWith('media-link-launcher://open?url='));
     const target = decodeURIComponent(navigations[0].split('url=', 2)[1]);
     assert.equal(target, new URL(mediaHref, document.baseURI).href);
+});
+
+test('XML-served XHTML receives namespaced controls for playlist anchors', () => {
+    const document = new FakeDocument({xml: true});
+    const m3u = anchor(document, '/kbcs.m3u', 'M3U');
+    const xspf = anchor(document, '/kbcs.xspf', 'XSPF');
+    assert.ok(!(m3u instanceof FakeHTMLAnchorElement));
+    assert.equal(document.createElement('span').style, undefined);
+    document.body.append(m3u, xspf);
+
+    const {observer} = executeUserscript(document);
+
+    const wrappers = elementsWithClass(document, 'media-link-launcher-wrapper');
+    assert.equal(wrappers.length, 2);
+    assert.ok(wrappers.every(element => element.namespaceURI === HTML_NAMESPACE));
+    assert.ok(wrappers.every(element => element.style instanceof FakeStyle));
+
+    const controls = wrappers.flatMap(wrapper => wrapper.childNodes).filter(
+        node => node instanceof FakeElement && node.localName === 'button',
+    );
+    assert.equal(controls.length, 2);
+    assert.ok(controls.every(element => element.namespaceURI === HTML_NAMESPACE));
+
+    const style = document.head.childNodes.find(node => node.localName === 'style');
+    assert.equal(style.namespaceURI, HTML_NAMESPACE);
+    assert.equal(m3u.getAttribute('href'), '/kbcs.m3u');
+    assert.equal(xspf.getAttribute('href'), '/kbcs.xspf');
+
+    const dynamic = anchor(document, '/new-stream.m3u8', 'New stream');
+    document.body.append(dynamic);
+    observer.callback([{type: 'childList', addedNodes: [dynamic]}]);
+    assert.equal(elementsWithClass(document, 'media-link-launcher-wrapper').length, 3);
 });
 
 test('dynamic insertion is detected and repeated scans do not create duplicates', () => {

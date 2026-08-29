@@ -11,7 +11,7 @@ param(
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
-$script:Version = '0.2.0'
+$script:Version = '0.2.1'
 $script:ProjectId = 'MediaLinkLauncher'
 $script:ProtocolScheme = 'media-link-launcher'
 $script:ProtocolAction = 'open'

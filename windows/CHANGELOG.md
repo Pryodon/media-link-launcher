@@ -1,5 +1,21 @@
 # Changelog
 
+## Windows 0.2.1 — 2026-08-28
+
+### Fixed
+
+- Added VLC controls to recognized media anchors in XHTML documents served as
+  XML, including Icecast-style `.m3u` and `.xspf` playlist links.
+- Created injected style and control elements in the XHTML namespace and made
+  anchor recognition safe across HTML and XML/XHTML DOM implementations.
+
+### Packaging
+
+- Moved the canonical shared-userscript checksum beside the userscript and
+  retained the checksum at package root in both release ZIPs.
+- Added XML/XHTML regression coverage and bumped all Windows package version
+  metadata to 0.2.1.
+
 ## Windows 0.2.0 — 2026-07-24
 
 ### Fixed
