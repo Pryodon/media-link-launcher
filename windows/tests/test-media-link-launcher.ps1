@@ -92,11 +92,14 @@ $quoted = ConvertTo-WindowsCommandLineArgument 'https://example.com/a"b\'
 Assert-True ($quoted.StartsWith('"') -and $quoted.EndsWith('"')) 'Command-line argument was not quoted.'
 
 $expectedHashPath = Join-Path $packageDirectory 'USERSCRIPT-SHA256.txt'
+if (-not (Test-Path -LiteralPath $expectedHashPath -PathType Leaf)) {
+    $repositoryRoot = Split-Path -Parent $packageDirectory
+    $expectedHashPath = Join-Path (Join-Path $repositoryRoot 'userscript') 'USERSCRIPT-SHA256.txt'
+}
 if (Test-Path -LiteralPath $expectedHashPath) {
     $expectedHash = ([System.IO.File]::ReadAllText($expectedHashPath)).Trim().Split(' ')[0].ToUpperInvariant()
     $userscriptPath = Join-Path $packageDirectory 'media-link-launcher.user.js'
     if (-not (Test-Path -LiteralPath $userscriptPath -PathType Leaf)) {
-        $repositoryRoot = Split-Path -Parent $packageDirectory
         $userscriptPath = Join-Path (Join-Path $repositoryRoot 'userscript') 'media-link-launcher.user.js'
     }
     $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $userscriptPath).Hash

@@ -2,7 +2,7 @@
 
 ## Open web media links in VLC media player
 
-Media Link Launcher 0.2.0 is an independent Tampermonkey userscript and
+Media Link Launcher 0.2.1 is an independent Tampermonkey userscript and
 per-user Windows URL-protocol handler. It adds a bold **VLC** control beside
 web links that appear to point to media. Clicking the control sends the
 selected URL to a local handler, which validates the request, displays a
@@ -14,19 +14,19 @@ remote code, automatic downloads, or automatic package installation.
 ## One shared userscript
 
 `media-link-launcher.user.js` is byte-for-byte identical to the file in
-`media-link-launcher-linux-0.2.0.zip`. Its SHA-256 value is recorded in
+`media-link-launcher-linux-0.2.1.zip`. Its SHA-256 value is recorded in
 `USERSCRIPT-SHA256.txt`:
 
 ```text
-5f250f81e4ad6f72d1241b6e21565e5595cbb9a6186f8f6f3914e9f149faf0c6
+d8d708aef1e7b8651c9275276dec551e250e6b8febc0d75bd95ef42e0c40d9ac
 ```
 
 The operating-system handler and installer differ by platform; the
 Tampermonkey code does not.
 
-Windows 0.2.0 accepts the single root slash that Windows URI canonicalization
-inserts between `open` and `?url=`. This is a Windows-handler correction only
-and does not require a userscript update.
+Windows 0.2.1 continues to accept the single root slash that Windows URI
+canonicalization inserts between `open` and `?url=`. That handler correction
+was introduced in Windows 0.2.0 and remains protocol-compatible with Linux.
 
 ## Compatibility
 

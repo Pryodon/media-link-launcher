@@ -2,7 +2,7 @@
 
 ## Open web media links in VLC media player
 
-Media Link Launcher 0.2.0 is an independent third-party Tampermonkey
+Media Link Launcher 0.2.1 is an independent third-party Tampermonkey
 userscript and Linux URL-protocol handler. It opens selected web media URLs
 in VLC media player.
 
@@ -58,6 +58,8 @@ destination server, credentials, and media format.
 - `uninstall-media-link-launcher.sh` safely invokes the uninstall operation.
 
 - `media-link-launcher.user.js` is the Tampermonkey userscript.
+
+- `USERSCRIPT-SHA256.txt` records the shared userscript's SHA-256 value.
 
 - `media-link-launcher.py` is the reviewable handler source template.
 

@@ -120,7 +120,7 @@ class InstallerIntegrationTests(unittest.TestCase):
 
     def test_install_is_idempotent_private_and_uninstalls_safely(self) -> None:
         first = self.run_script()
-        self.assertIn("Installed Media Link Launcher 0.2.0", first.stdout)
+        self.assertIn("Installed Media Link Launcher 0.2.1", first.stdout)
         self.assertEqual(
             self.query_default("x-scheme-handler/media-link-launcher"),
             "media-link-launcher.desktop",
@@ -158,7 +158,7 @@ class InstallerIntegrationTests(unittest.TestCase):
         )
 
         second = self.run_script()
-        self.assertIn("Installed Media Link Launcher 0.2.0", second.stdout)
+        self.assertIn("Installed Media Link Launcher 0.2.1", second.stdout)
         backup_directories = list((self.state_dir / "backups").iterdir())
         self.assertGreaterEqual(len(backup_directories), 2)
 
@@ -181,7 +181,7 @@ class InstallerIntegrationTests(unittest.TestCase):
 
         result = self.run_script(installer)
 
-        self.assertIn("Installed Media Link Launcher 0.2.0", result.stdout)
+        self.assertIn("Installed Media Link Launcher 0.2.1", result.stdout)
         self.assertTrue(self.handler.is_file())
         self.assertTrue(self.desktop.is_file())
 

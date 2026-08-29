@@ -2,6 +2,22 @@
 
 All notable changes to Media Link Launcher are documented here.
 
+## 0.2.1 — 2026-08-28
+
+### Fixed
+
+- Added VLC controls to recognized media anchors in XHTML documents served as
+  XML, including Icecast-style `.m3u` and `.xspf` playlist links.
+- Created injected style and control elements in the XHTML namespace and made
+  anchor recognition safe across HTML and XML/XHTML DOM implementations.
+
+### Packaging
+
+- Moved the canonical shared-userscript checksum beside the userscript and
+  included the validated checksum in both platform packages.
+- Added XML/XHTML regression coverage and bumped all package version metadata
+  to 0.2.1.
+
 ## 0.2.0 — 2026-07-18
 
 ### Changed

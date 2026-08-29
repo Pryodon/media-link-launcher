@@ -30,7 +30,7 @@ Each release package contains the shared userscript, the selected platform
 handler, its installer and uninstaller, tests, legal notices, and detailed
 documentation.
 
-Version 0.2.0 uses the project-owned request form:
+Version 0.2.0 and later use the project-owned request form:
 
 ```text
 media-link-launcher://open?url=<percent-encoded-media-url>
@@ -49,6 +49,7 @@ canonicalization.
 ├── DISCLAIMER.md
 ├── userscript/
 │   ├── media-link-launcher.user.js
+│   ├── USERSCRIPT-SHA256.txt
 │   └── tests/
 ├── linux/
 │   ├── README.md
@@ -63,7 +64,8 @@ canonicalization.
 ```
 
 `userscript/media-link-launcher.user.js` is the single canonical userscript
-source. Both release builders copy that file into their standalone package.
+source, and `userscript/USERSCRIPT-SHA256.txt` records its SHA-256 value. Both
+release builders validate and copy those files into their standalone package.
 Platform-specific handlers, installers, tests, documentation, and changelogs
 remain under their platform directories.
 
